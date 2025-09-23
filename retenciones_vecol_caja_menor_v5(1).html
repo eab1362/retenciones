@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aplicación de retenciones caja menor y cuentas de gastos VECOL SA</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111827; --muted:#9ca3af; --accent:#1f4e79;
+      --green:#00b050; --green-soft:#e2f0d9; --yellow:#fff2cc; --zebra:#f2f2f2; --border:#334155;
+    }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#0b1220; color:#e5e7eb; }
+    .container{max-width:980px;margin:40px auto;padding:0 16px}
+    .title{ background:#1f4e79;padding:18px 20px;border-radius:14px;text-align:center;font-weight:800;font-size:22px;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.25) }
+    .toolbar{display:flex;gap:10px;margin:12px 0}
+    button{ cursor:pointer;background:#374151;color:#e5e7eb;border:1px solid #475569;border-radius:10px;padding:10px 12px;font-weight:700 }
+    button.primary{ background:#2563eb; border-color:#1d4ed8 }
+    .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:18px}
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr } }
+    .card{background:#111827;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+    h2{font-size:16px;margin:0 0 10px 0;color:#fff}
+    label{display:block;font-size:13px;color:#cbd5e1;margin:10px 0 6px}
+    select,input[type="text"],input[type="number"]{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid #334155;
+      background:#0f172a; color:#e2e8f0; outline:none;
+    }
+    select:focus,input:focus{border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,.15)}
+    .green{ background: var(--green-soft); color:#0f172a; border-color:#7fbf9b }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .muted{color:var(--muted);font-size:12px}
+    .zebra{background:var(--zebra);color:#111827;padding:8px 10px;border-radius:8px;margin:6px 0}
+    .out{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px dashed #475569;border-radius:10px;margin:8px 0;background:#0f172a}
+    .out strong{color:#fff}
+    .total{background: var(--green); color:#fff; font-weight:800; font-size:18px;padding:14px 16px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 8px 24px rgba(0,176,80,.25);margin-top:10px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .badge.warn{ background: var(--yellow); color:#0f172a }
+    .helper{ background: var(--yellow); color:#0f172a; padding:10px 12px; border-radius:10px; margin-top:8px }
+    .steps{margin-top:12px}
+    .steps .step{ background:#eaf3fb; color:#0f172a; padding:10px 12px; border-radius:10px; margin:6px 0}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">Aplicación de retenciones caja menor y cuentas de gastos VECOL SA</div>
+
+    <div class="toolbar">
+      <button id="btnClear" title="Borra solo los campos verdes">🧹 Limpiar formulario</button>
+      <button id="btnPrint" class="primary" title="Imprime o guarda como PDF">🖨️ Imprimir/Guardar PDF</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Datos del proveedor / operación</h2>
+        <div class="row">
+          <div>
+            <label>Ciudad (donde se hizo la compra/servicio)</label>
+            <select id="ciudad" class="green">
+              <option value="Bogotá">Bogotá</option>
+              <option value="Bucaramanga">Bucaramanga</option>
+              <option value="Barranquilla">Barranquilla</option>
+              <option value="Otra ciudad">Otra ciudad</option>
+            </select>
+          </div>
+          <div>
+            <label>¿Proveedor en RST (SIMPLE)?</label>
+            <select id="rst" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>¿Proveedor cobra IVA?</label>
+            <select id="respIva" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+          <div>
+            <label>% de IVA (escribe: 0.19 ó 19%)</label>
+            <input id="pctIva" type="text" inputmode="decimal" class="green" placeholder="0.19 ó 19%">
+            <div class="muted">Se aceptan formatos: <b>0.19</b>, <b>19%</b> o <b>0,19</b>.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>¿Tiene Impuesto al Consumo (INC)?</label>
+            <select id="aplicaInc" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+          <div>
+            <label>% de INC (escribe: 0.08 ó 8%)</label>
+            <input id="pctInc" type="text" inputmode="decimal" class="green" placeholder="0.08 ó 8%">
+            <div class="muted">Se aceptan formatos: <b>0.08</b>, <b>8%</b> o <b>0,08</b>.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>¿Qué tipo de compra/servicio es?</label>
+            <select id="operacion" class="green">
+              <option>Servicios (generales)</option>
+              <option>Servicios de restaurante/hotel</option>
+              <option>Compras/Bienes</option>
+              <option>Honorarios</option>
+              <option>Comisiones</option>
+              <option>Arrendamientos (bienes muebles)</option>
+              <option>Arrendamientos (bienes inmuebles)</option>
+              <option>Transporte de carga</option>
+              <option>Transporte de pasajeros (terrestre)</option>
+            </select>
+          </div>
+          <div>
+            <label>¿El proveedor es autorretenedor de Renta?</label>
+            <select id="autorretenedor" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>¿El proveedor es declarante de renta?</label>
+            <select id="declarante" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+          <div>
+            <label>¿El proveedor es autorretenedor de ICA?</label>
+            <select id="autorretenedorICA" class="green">
+              <option>Sí</option><option selected>No</option>
+            </select>
+          </div>
+        </div>
+
+        <h2 style="margin-top:10px">Bases (pre‑impuestos)</h2>
+        <div class="row">
+          <div>
+            <label>Valor base que generó IVA (COP)</label>
+            <input id="baseIva" type="text" inputmode="numeric" class="green money" placeholder="0">
+          </div>
+          <div>
+            <label>Valor base con Impuesto al Consumo – INC (COP)</label>
+            <input id="baseInc" type="text" inputmode="numeric" class="green money" placeholder="0">
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Valor NO gravado con IVA o INC (COP)</label>
+            <input id="baseNo" type="text" inputmode="numeric" class="green money" placeholder="0">
+          </div>
+          <div>
+            <label>Base total (pre‑impuestos) (COP)</label>
+            <input id="baseTotal" type="text" disabled>
+          </div>
+        </div>
+
+        <div class="muted" style="margin-top:6px">Nota: La base <b>no gravada</b> también integra la base para <b>Renta</b> e <b>ICA</b>.</div>
+      </div>
+
+      <div class="card">
+        <h2>Resultados</h2>
+        <div class="zebra"><b>Tope mínimo para retener:</b> <span id="tope"></span></div>
+        <div class="out"><span>Tarifa ICA (‰) (auto)</span><strong id="icaPerMil"></strong></div>
+        <div class="out"><span>IVA de la operación</span><strong id="iva"></strong></div>
+        <div class="out"><span>INC de la operación</span><strong id="inc"></strong></div>
+        <div class="out"><span>Retención en la fuente</span><strong id="reteRenta"></strong></div>
+        <div class="out"><span>Retención de IVA</span><strong id="reteIva"></strong></div>
+        <div class="out"><span>Retención de ICA</span><strong id="reteIca"></strong></div>
+        <div class="out"><span>Total retenciones</span><strong id="totalRet"></strong></div>
+        <div class="total"><span>Total a pagar al proveedor</span><span id="totalPagar"></span></div>
+
+        <div class="badge warn" id="statusGeneral">—</div>
+        <div class="helper" id="detRenta"></div>
+        <div class="helper" id="detIva"></div>
+        <div class="helper" id="detIca"></div>
+        <div class="helper" id="notaIca"></div>
+
+        <div class="steps">
+          <div class="step">1) Diligencia solo las celdas verdes.</div>
+          <div class="step">2) Verifica el tope mínimo (UVT → COP). Si la base no lo supera, las retenciones quedan en $0.</div>
+          <div class="step">3) Revisa el total a pagar; si el proveedor es RST o autorretenedor, las reglas se aplican solas.</div>
+          <div class="step">4) Usa “Limpiar formulario” para empezar de nuevo.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:12px">
+      UVT 2025: 49.799 COP. Esta herramienta es referencial y no sustituye la revisión normativa vigente y particularidades del contrato/actividad.
+    </p>
+  </div>
+
+<script>
+(() => {
+  const UVT = 49799;
+
+  const BASES = {
+    "Servicios (generales)": 2,
+    "Servicios de restaurante/hotel": 2,
+    "Honorarios": 2,
+    "Comisiones": 2,
+    "Compras/Bienes": 10,
+    "Arrendamientos (bienes muebles)": 10,
+    "Arrendamientos (bienes inmuebles)": 10,
+    "Transporte de carga": 2,
+    "Transporte de pasajeros (terrestre)": 10,
+  };
+
+  const RENTA = {
+    "Servicios (generales)": { declarante: 0.04, nodeclarante: 0.06 },
+    "Servicios de restaurante/hotel": { declarante: 0.035, nodeclarante: 0.035 },
+    "Honorarios": { declarante: 0.10, nodeclarante: 0.11 },
+    "Comisiones": { declarante: 0.10, nodeclarante: 0.10 },
+    "Compras/Bienes": { declarante: 0.025, nodeclarante: 0.035 },
+    "Arrendamientos (bienes muebles)": { declarante: 0.04, nodeclarante: 0.06 },
+    "Arrendamientos (bienes inmuebles)": { declarante: 0.035, nodeclarante: 0.035 },
+    "Transporte de carga": { declarante: 0.01, nodeclarante: 0.01 },
+    "Transporte de pasajeros (terrestre)": { declarante: 0.035, nodeclarante: 0.035 },
+  };
+
+  const ICA = {
+    "Servicios (generales)": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Servicios de restaurante/hotel": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Honorarios": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Comisiones": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Compras/Bienes": {"Bogotá":4.14,"Bucaramanga":4.0,"Barranquilla":5.0,"Otra ciudad":0.0},
+    "Arrendamientos (bienes muebles)": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Arrendamientos (bienes inmuebles)": {"Bogotá":9.66,"Bucaramanga":7.0,"Barranquilla":8.0,"Otra ciudad":0.0},
+    "Transporte de carga": {"Bogotá":4.14,"Bucaramanga":4.0,"Barranquilla":5.0,"Otra ciudad":0.0},
+    "Transporte de pasajeros (terrestre)": {"Bogotá":4.14,"Bucaramanga":4.0,"Barranquilla":5.0,"Otra ciudad":0.0},
+  };
+
+  const fmtCOP = new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0});
+  const fmtInt = new Intl.NumberFormat('es-CO',{maximumFractionDigits:0});
+  const fmtPct = new Intl.NumberFormat('es-CO',{maximumFractionDigits:2});
+
+  const el = id => document.getElementById(id);
+  const elements = {
+    ciudad: el('ciudad'),
+    rst: el('rst'),
+    respIva: el('respIva'),
+    pctIva: el('pctIva'),
+    aplicaInc: el('aplicaInc'),
+    pctInc: el('pctInc'),
+    operacion: el('operacion'),
+    autorretenedor: el('autorretenedor'),
+    declarante: el('declarante'),
+    autorretenedorICA: el('autorretenedorICA'),
+
+    baseIva: el('baseIva'),
+    baseInc: el('baseInc'),
+    baseNo:  el('baseNo'),
+    baseTotal: el('baseTotal'),
+
+    tope: el('tope'),
+    icaPerMil: el('icaPerMil'),
+    iva: el('iva'),
+    inc: el('inc'),
+    reteRenta: el('reteRenta'),
+    reteIva: el('reteIva'),
+    reteIca: el('reteIca'),
+    totalRet: el('totalRet'),
+    totalPagar: el('totalPagar'),
+
+    statusGeneral: el('statusGeneral'),
+    detRenta: el('detRenta'),
+    detIva: el('detIva'),
+    detIca: el('detIca'),
+    notaIca: el('notaIca'),
+    btnClear: el('btnClear'),
+    btnPrint: el('btnPrint'),
+  };
+
+  function parsePctString(str){
+    if(!str) return 0;
+    let s = (str+"").trim().replace(",", ".").replace(/%$/, "").replace(/\s+/g, "");
+    let v = parseFloat(s);
+    if(isNaN(v)) return 0;
+    if(v > 1) v = v / 100;
+    if(v < 0) v = 0;
+    if(v > 1) v = 1;
+    return v;
+  }
+  function formatPctOnBlur(input){
+    const v = parsePctString(input.value);
+    if(!v){ input.value = ""; return; }
+    input.value = fmtPct.format(v*100) + "%";
+  }
+
+  function parseMoneyString(str){
+    if(!str) return 0;
+    const digits = (str+"").replace(/\D/g, "");
+    return digits ? parseInt(digits,10) : 0;
+  }
+  function formatMoneyInput(input){
+    const raw = (input.value || "").toString();
+    const digits = raw.replace(/\D/g, "");
+    input.value = digits ? fmtInt.format(parseInt(digits,10)) : "";
+  }
+
+  function calc(){
+    const ciudad = elements.ciudad.value;
+    const rst = elements.rst.value === 'Sí';
+    const respIVA = elements.respIva.value === 'Sí';
+    const pctIVA = parsePctString(elements.pctIva.value);
+    const aplicaINC = elements.aplicaInc.value === 'Sí';
+    const pctINC = parsePctString(elements.pctInc.value);
+    const op = elements.operacion.value;
+    const autorretenedor = elements.autorretenedor.value === 'Sí';
+    const declarante = elements.declarante.value === 'Sí';
+    const autorretenedorICA = elements.autorretenedorICA.value === 'Sí';
+
+    const baseIVA = parseMoneyString(elements.baseIva.value);
+    const baseINC = parseMoneyString(elements.baseInc.value);
+    const baseNO  = parseMoneyString(elements.baseNo.value);
+    const baseTot = Math.round(baseIVA + baseINC + baseNO);
+    elements.baseTotal.value = baseTot ? fmtCOP.format(baseTot) : '';
+
+    const baseUVT = {
+      "Servicios (generales)": 2, "Servicios de restaurante/hotel": 2, "Honorarios": 2, "Comisiones": 2,
+      "Compras/Bienes": 10, "Arrendamientos (bienes muebles)": 10, "Arrendamientos (bienes inmuebles)": 10,
+      "Transporte de carga": 2, "Transporte de pasajeros (terrestre)": 10,
+    }[op] || 0;
+
+    const tope = Math.round(baseUVT * UVT);
+
+    const rentaRate = (function(){
+      const t = {
+        "Servicios (generales)": { d: 0.04, n: 0.06 },
+        "Servicios de restaurante/hotel": { d: 0.035, n: 0.035 },
+        "Honorarios": { d: 0.10, n: 0.11 },
+        "Comisiones": { d: 0.10, n: 0.10 },
+        "Compras/Bienes": { d: 0.025, n: 0.035 },
+        "Arrendamientos (bienes muebles)": { d: 0.04, n: 0.06 },
+        "Arrendamientos (bienes inmuebles)": { d: 0.035, n: 0.035 },
+        "Transporte de carga": { d: 0.01, n: 0.01 },
+        "Transporte de pasajeros (terrestre)": { d: 0.035, n: 0.035 },
+      }[op];
+      if(!t) return 0;
+      return declarante ? t.d : t.n;
+    })();
+
+    const icaPerMil = (ICA[op] && ICA[op][ciudad] != null) ? ICA[op][ciudad] : 0;
+    const reteIvaRate = 0.15;
+
+    const iva = respIVA ? Math.round(baseIVA * pctIVA) : 0;
+    const inc = aplicaINC ? Math.round(baseINC * pctINC) : 0;
+
+    let reteRenta = 0;
+    if(!rst && !autorretenedor && baseTot >= tope && rentaRate > 0){
+      reteRenta = Math.round(baseTot * rentaRate);
+    }
+
+    let reteIVA = 0;
+    if(respIVA && baseIVA >= tope && reteIvaRate > 0){
+      reteIVA = Math.round(iva * reteIvaRate);
+    }
+
+    let reteICA = 0;
+    if(!rst && !autorretenedorICA && baseTot >= tope && icaPerMil > 0){
+      reteICA = Math.round(baseTot * (icaPerMil/1000));
+    }
+
+    const totalRet = reteRenta + reteIVA + reteICA;
+    const totalPagar = baseTot + iva + inc - totalRet;
+
+    elements.tope.textContent = fmtCOP.format(tope);
+    elements.icaPerMil.textContent = icaPerMil.toLocaleString('es-CO') + " ‰";
+    elements.iva.textContent = fmtCOP.format(iva);
+    elements.inc.textContent = fmtCOP.format(inc);
+    elements.reteRenta.textContent = fmtCOP.format(reteRenta);
+    elements.reteIva.textContent = fmtCOP.format(reteIVA);
+    elements.reteIca.textContent = fmtCOP.format(reteICA);
+    elements.totalRet.textContent = fmtCOP.format(totalRet);
+    elements.totalPagar.textContent = fmtCOP.format(totalPagar);
+
+    if(!baseTot){
+      elements.statusGeneral.textContent = "⚠️ Ingresa al menos una base (IVA, INC o no gravada).";
+    } else if (baseTot < tope){
+      elements.statusGeneral.textContent = "⚠️ No se practica retención: base inferior al tope mínimo (" + fmtCOP.format(tope) + ").";
+    } else {
+      elements.statusGeneral.textContent = "✔️ Base supera el tope: se aplican retenciones si cumplen requisitos.";
+    }
+
+    if(rst){
+      elements.detRenta.textContent = "Renta: No aplica (proveedor en RST).";
+    } else if(autorretenedor){
+      elements.detRenta.textContent = "Renta: No aplica (proveedor autorretenedor de Renta).";
+    } else if(baseTot < tope){
+      elements.detRenta.textContent = "Renta: No aplica (base " + fmtCOP.format(baseTot) + " < tope " + fmtCOP.format(tope) + ").";
+    } else if(rentaRate === 0){
+      elements.detRenta.textContent = "Renta: No aplica (tarifa 0%).";
+    } else {
+      elements.detRenta.textContent = "Renta: Se practica (" + (rentaRate*100).toFixed(2).replace(".00","") + "%).";
+    }
+
+    if(!respIVA){
+      elements.detIva.textContent = "IVA: No se practica retención (proveedor no responsable de IVA).";
+    } else if(baseIVA < tope){
+      elements.detIva.textContent = "IVA: No se practica (base IVA " + fmtCOP.format(baseIVA) + " < tope " + fmtCOP.format(tope) + ").";
+    } else if(reteIvaRate === 0){
+      elements.detIva.textContent = "IVA: No se practica (% ReteIVA 0%).";
+    } else {
+      elements.detIva.textContent = "IVA: Se practica (15% del IVA facturado).";
+    }
+
+    if(ciudad === "Otra ciudad"){
+      elements.detIca.textContent = "ICA: No aplica (Otra ciudad = 0‰ por defecto).";
+      elements.notaIca.textContent = "Para calcular ICA en otra ciudad, usa una ciudad con tarifa o añade el valor en tu versión.";
+    } else if(rst){
+      elements.detIca.textContent = "ICA: No aplica (proveedor en RST).";
+      elements.notaIca.textContent = "";
+    } else if(autorretenedorICA){
+      elements.detIca.textContent = "ICA: No aplica (proveedor autorretenedor de ICA).";
+      elements.notaIca.textContent = "";
+    } else if(baseTot < tope){
+      elements.detIca.textContent = "ICA: No se practica (base " + fmtCOP.format(baseTot) + " < tope " + fmtCOP.format(tope) + ").";
+      elements.notaIca.textContent = "";
+    } else if(icaPerMil === 0){
+      elements.detIca.textContent = "ICA: No se practica (tarifa 0‰).";
+      elements.notaIca.textContent = "";
+    } else {
+      elements.detIca.textContent = "ICA: Se practica (" + icaPerMil.toLocaleString('es-CO') + " ‰).";
+      elements.notaIca.textContent = "";
+    }
+  }
+
+  // Formateo de miles al escribir en las bases
+  ['baseIva','baseInc','baseNo'].forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener('input', () => {
+      formatMoneyInput(input);
+      calc();
+    });
+    input.addEventListener('blur', () => {
+      formatMoneyInput(input);
+      calc();
+    });
+  });
+
+  // Formateo de porcentaje al salir del campo
+  ['pctIva','pctInc'].forEach(id => {
+    const input = document.getElementById(id);
+    input.addEventListener('blur', () => {
+      formatPctOnBlur(input);
+      calc();
+    });
+    input.addEventListener('input', () => {
+      // No formateamos mientras escribe para que no "salte" el cursor
+      calc();
+    });
+  });
+
+  // Recalcular ante otros cambios
+  ['change'].forEach(evt => document.addEventListener(evt, () => calc()));
+
+  // Toolbar
+  elements.btnClear.addEventListener('click', () => {
+    ['ciudad','rst','respIva','aplicaInc','operacion','autorretenedor','declarante','autorretenedorICA'].forEach(id => {
+      const node = elements[id];
+      if(node.tagName === 'SELECT'){
+        if(['rst','aplicaInc','autorretenedor','declarante','autorretenedorICA'].includes(id)) node.value = 'No';
+        else node.selectedIndex = 0;
+      }
+    });
+    ['pctIva','pctInc','baseIva','baseInc','baseNo'].forEach(id => elements[id].value = '');
+    calc();
+  });
+  elements.btnPrint.addEventListener('click', () => window.print());
+
+  // Defaults
+  elements.ciudad.value = "Bogotá";
+  elements.operacion.value = "Servicios (generales)";
+  calc();
+})();
+</script>
+</body>
+</html>
